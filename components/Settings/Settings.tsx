@@ -3,7 +3,6 @@ import { Input } from "@/components/ui/input";
 import { Toggle } from "@/components/ui/toggle";
 import { FormEvent, useCallback, useState } from "react";
 import RxPlayer from "rx-player";
-import SourceBufferManager from "rx-player/core";
 import { Label } from "../ui/label";
 import { IKeySystemOption } from "rx-player/types";
 import usePlayer from "./usePlayer";
