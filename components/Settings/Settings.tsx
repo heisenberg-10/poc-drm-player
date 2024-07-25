@@ -14,15 +14,17 @@ export default function Settings({ setChallenge }: { setChallenge: Function }) {
     transport: "dash" | "directfile";
     isEncrypted: boolean;
     licenseServerUrl: string;
+    token: string;
     serverCertificateUrl: string;
   }>({
     url: "https://replay-dshmkpc.p-cdnvod-edge010605-dual.scy.canalplus-cdn.net/__token__id%3D248be0ca7687389c22da7245f4fb4b6b~hmac%3D85516461bc32e8a8b13b56ef05eea066eb495c48c887806be42ec89aff461bb5/wal/mkpc/canalplus/canalplus/ANT_1287096_1/01HYYSGMSDT9NA2B7PMAJMXJYS/ANT_1287096_1.mpd",
     transport: "dash",
     isEncrypted: true,
     licenseServerUrl: "",
+    token: "",
     serverCertificateUrl: "",
   });
-  const { url, transport, isEncrypted, licenseServerUrl } = settings;
+  const { url, transport, isEncrypted, licenseServerUrl, token } = settings;
 
   const getLicense = useCallback(
     (
@@ -35,6 +37,9 @@ export default function Settings({ setChallenge }: { setChallenge: Function }) {
       setChallenge({ message: challenge, messageType });
       return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
+        if (!!token) {
+          xhr.setRequestHeader("Authorization", token);
+        }
         xhr.open("POST", licenseServerUrl, true);
         xhr.onerror = (err) => {
           reject(err);
@@ -67,7 +72,7 @@ export default function Settings({ setChallenge }: { setChallenge: Function }) {
         };
       });
     },
-    [setChallenge, licenseServerUrl]
+    [setChallenge, licenseServerUrl, token]
   );
 
   const onSubmit = useCallback(
@@ -135,6 +140,19 @@ export default function Settings({ setChallenge }: { setChallenge: Function }) {
           }
           value={licenseServerUrl}
           placeholder={`Set license url...`}
+        />
+      </div>
+      <div className="flex gap-[8px] items-center mt-5">
+        <Label>Token:</Label>
+        <Input
+          onChange={(e) =>
+            setSettings((prevState) => ({
+              ...prevState,
+              token: e.target.value,
+            }))
+          }
+          value={token}
+          placeholder={`Bearer ...`}
         />
       </div>
       <div className="flex gap-[8px] items-center mt-5">
