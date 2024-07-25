@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Toggle } from "@/components/ui/toggle";
 import { FormEvent, useCallback, useState } from "react";
 import RxPlayer from "rx-player";
+import SourceBufferManager from "rx-player/core";
 import { Label } from "../ui/label";
 import { IKeySystemOption } from "rx-player/types";
 import usePlayer from "./usePlayer";
@@ -79,24 +80,33 @@ export default function Settings({ setChallenge }: { setChallenge: Function }) {
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
 
-      const keySystems: IKeySystemOption[] = isEncrypted
-        ? [
-            {
-              type: "com.widevine.alpha",
-              getLicense,
-              serverCertificate:
-                "https://secure-webtv-static.canal-plus.com/widevine/cert/cert_license_widevine_com.bin",
-            },
-          ]
-        : [];
+      // const reader = new FileReader()
+      // reader.readAsDataURL("https://secure-webtv-static.canal-plus.com/widevine/cert/cert_license_widevine_com.bin")
+      // reader.readAsArrayBuffer("https://secure-webtv-static.canal-plus.com/widevine/cert/cert_license_widevine_com.bin");
 
-      // play a video
-      player?.loadVideo({
-        url,
-        transport,
-        autoPlay: true,
-        keySystems,
-      });
+      fetch(
+        "https://secure-webtv-static.canal-plus.com/widevine/cert/cert_license_widevine_com.bin"
+      )
+        .then((res) => res.arrayBuffer())
+        .then((arrayBuffer) => {
+          const keySystems: IKeySystemOption[] = isEncrypted
+            ? [
+                {
+                  type: "com.widevine.alpha",
+                  getLicense,
+                  serverCertificate: arrayBuffer,
+                },
+              ]
+            : [];
+
+          // play a video
+          player?.loadVideo({
+            url,
+            transport,
+            autoPlay: true,
+            keySystems,
+          });
+        });
     },
     [url, transport, isEncrypted, player, getLicense]
   );
