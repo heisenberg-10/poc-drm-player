@@ -84,6 +84,8 @@ export default function Settings({ setChallenge }: { setChallenge: Function }) {
             {
               type: "com.widevine.alpha",
               getLicense,
+              serverCertificate:
+                "https://secure-webtv-static.canal-plus.com/widevine/cert/cert_license_widevine_com.bin",
             },
           ]
         : [];
