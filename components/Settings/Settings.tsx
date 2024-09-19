@@ -94,6 +94,20 @@ export default function Settings({ setChallenge }: { setChallenge: Function }) {
                   type: "com.widevine.alpha",
                   getLicense,
                   serverCertificate: arrayBuffer,
+                  persistentLicenseConfig: {
+                    save(data: unknown) {
+                      localStorage.setItem(
+                        "RxPlayer-persistent-storage",
+                        JSON.stringify(data)
+                      );
+                    },
+                    load() {
+                      const item = localStorage.getItem(
+                        "RxPlayer-persistent-storage"
+                      );
+                      return item === null ? [] : JSON.parse(item);
+                    },
+                  },
                 },
               ]
             : [];
