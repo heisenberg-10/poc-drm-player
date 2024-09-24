@@ -6,6 +6,7 @@ import RxPlayer from "rx-player";
 import { Label } from "../ui/label";
 import { IKeySystemOption } from "rx-player/types";
 import usePlayer from "./usePlayer";
+import { Switch } from "../ui/switch";
 
 export default function Settings({ setChallenge }: { setChallenge: Function }) {
   const { player } = usePlayer();
@@ -16,6 +17,7 @@ export default function Settings({ setChallenge }: { setChallenge: Function }) {
     licenseServerUrl: string;
     token: string;
     serverCertificateUrl: string;
+    challengeType: string;
   }>({
     url: "https://replay-dshmkpc.p-cdnvod-edge010605-dual.scy.canalplus-cdn.net/__token__id%3D248be0ca7687389c22da7245f4fb4b6b~hmac%3D85516461bc32e8a8b13b56ef05eea066eb495c48c887806be42ec89aff461bb5/wal/mkpc/canalplus/canalplus/ANT_1287096_1/01HYYSGMSDT9NA2B7PMAJMXJYS/ANT_1287096_1.mpd",
     transport: "dash",
@@ -23,8 +25,16 @@ export default function Settings({ setChallenge }: { setChallenge: Function }) {
     licenseServerUrl: "",
     token: "",
     serverCertificateUrl: "",
+    challengeType: "Uint8Array",
   });
-  const { url, transport, isEncrypted, licenseServerUrl, token } = settings;
+  const {
+    url,
+    transport,
+    isEncrypted,
+    licenseServerUrl,
+    token,
+    challengeType,
+  } = settings;
 
   const getLicense = useCallback(
     (
@@ -63,7 +73,13 @@ export default function Settings({ setChallenge }: { setChallenge: Function }) {
         };
         xhr.responseType = "arraybuffer";
         console.log("send");
-        xhr.send(challenge);
+        if (challengeType === "Uint8Array") {
+          xhr.send(challenge);
+        } else {
+          xhr.send(Buffer.from(challenge).toString("base64"));
+          // const decoder = new TextDecoder("utf8");
+          // xhr.send(btoa(decoder.decode(challenge)));
+        }
         xhr.onreadystatechange = function () {
           if (xhr.readyState == XMLHttpRequest.DONE) {
             console.log("🚀 ~ returnnewPromise ~ xhr:", xhr);
@@ -179,6 +195,20 @@ export default function Settings({ setChallenge }: { setChallenge: Function }) {
           value={token}
           placeholder={`Bearer ...`}
         />
+      </div>
+      <div className="flex gap-[24px] items-center mt-5">
+        <Label>Challenge object type:</Label>
+        Uint8Array
+        <Switch
+          checked={challengeType === "Base64"}
+          onCheckedChange={(checked) =>
+            setSettings((prevState) => ({
+              ...prevState,
+              challengeType: checked ? "Base64" : "Uint8Array",
+            }))
+          }
+        />
+        Base64
       </div>
       <div className="flex gap-[8px] items-center mt-5">
         <Label>Url:</Label>
