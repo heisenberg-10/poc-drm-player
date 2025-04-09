@@ -7,6 +7,7 @@ import { Label } from "../ui/label";
 import { IKeySystemOption } from "rx-player/types";
 import usePlayer from "./usePlayer";
 import { Switch } from "../ui/switch";
+import axios from "axios";
 
 export default function Settings({ setChallenge }: { setChallenge: Function }) {
   const { player } = usePlayer();
@@ -131,6 +132,30 @@ export default function Settings({ setChallenge }: { setChallenge: Function }) {
           // play a video
           player?.loadVideo({
             url,
+            manifestLoader: (urlManifest, { resolve, reject }) => {
+              const sendingTime = Date.now();
+              const accessToken = token;
+              const authHeader = accessToken
+                ? { Authorization: `Bearer ${accessToken}` }
+                : {};
+              axios
+                .get(urlManifest.url as string, {
+                  headers: {
+                    "Content-Type": "application/json",
+                    ...authHeader,
+                  },
+                })
+                .then((response) => {
+                  return resolve({
+                    data: response.data,
+                    duration: Date.now() - sendingTime,
+                    size: 0,
+                  });
+                })
+                .catch((err) => {
+                  return reject(err);
+                });
+            },
             transport,
             autoPlay: true,
             keySystems,
