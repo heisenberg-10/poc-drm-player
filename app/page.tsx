@@ -25,7 +25,6 @@ export default function Home() {
           controls
           className="w-full h-auto bg-black border border-black rounded-3xl"
         />
-        <Textarea disabled value={`ArrayBuffer : ${arrayBuffer || ""}`} />
         <Textarea disabled value={`Challenge : ${challenge.message || ""}`} />
         <Textarea
           disabled
