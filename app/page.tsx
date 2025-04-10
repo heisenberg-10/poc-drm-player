@@ -7,11 +7,11 @@ import { Film } from "lucide-react";
 import { useState } from "react";
 
 export default function Home() {
-
   const [challenge, setChallenge] = useState<{
     message: any;
     messageType: any;
   }>({ message: "", messageType: "" });
+  const [arrayBuffer, setArrayBuffer] = useState<ArrayBuffer>();
 
   return (
     <>
@@ -20,13 +20,17 @@ export default function Home() {
           <Film width="54px" height="54px" />
           MDRM Poc
         </Label>
-        <Settings setChallenge={setChallenge} />
+        <Settings setChallenge={setChallenge} setArrayBuffer={setArrayBuffer} />
         <video
           controls
           className="w-full h-auto bg-black border border-black rounded-3xl"
         />
+        <Textarea disabled value={`ArrayBuffer : ${arrayBuffer || ""}`} />
         <Textarea disabled value={`Challenge : ${challenge.message || ""}`} />
-        <Textarea disabled value={`Challenge type : ${challenge.messageType || ""}`} />
+        <Textarea
+          disabled
+          value={`Challenge type : ${challenge.messageType || ""}`}
+        />
       </div>
     </>
   );
