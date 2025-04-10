@@ -8,8 +8,15 @@ import { IKeySystemOption } from "rx-player/types";
 import usePlayer from "./usePlayer";
 import { Switch } from "../ui/switch";
 import axios from "axios";
+import { Textarea } from "../ui/textarea";
 
-export default function Settings({ setChallenge }: { setChallenge: Function }) {
+export default function Settings({
+  setChallenge,
+  setArrayBuffer,
+}: {
+  setChallenge: Function;
+  setArrayBuffer: Function;
+}) {
   const { player } = usePlayer();
   const [settings, setSettings] = useState<{
     url: string;
@@ -105,6 +112,7 @@ export default function Settings({ setChallenge }: { setChallenge: Function }) {
       )
         .then((res) => res.arrayBuffer())
         .then((arrayBuffer) => {
+          setArrayBuffer(arrayBuffer);
           const keySystems: IKeySystemOption[] = isEncrypted
             ? [
                 {
