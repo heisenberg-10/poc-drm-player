@@ -7,8 +7,16 @@ import { Label } from "../ui/label";
 import { IKeySystemOption } from "rx-player/types";
 import usePlayer from "./usePlayer";
 import { Switch } from "../ui/switch";
+import axios from "axios";
+import { Textarea } from "../ui/textarea";
 
-export default function Settings({ setChallenge }: { setChallenge: Function }) {
+export default function Settings({
+  setChallenge,
+  setArrayBuffer,
+}: {
+  setChallenge: Function;
+  setArrayBuffer: Function;
+}) {
   const { player } = usePlayer();
   const [settings, setSettings] = useState<{
     url: string;
@@ -19,10 +27,11 @@ export default function Settings({ setChallenge }: { setChallenge: Function }) {
     serverCertificateUrl: string;
     challengeType: string;
   }>({
-    url: "https://replay-dshmkpc.p-cdnvod-edge010605-dual.scy.canalplus-cdn.net/__token__id%3D248be0ca7687389c22da7245f4fb4b6b~hmac%3D85516461bc32e8a8b13b56ef05eea066eb495c48c887806be42ec89aff461bb5/wal/mkpc/canalplus/canalplus/ANT_1287096_1/01HYYSGMSDT9NA2B7PMAJMXJYS/ANT_1287096_1.mpd",
+    url: "https://d3-mhm-01gui.dev.mam.mediahub.aws.cplus/api/asset/v1/resources/757d6653-338f-42b5-95bc-91587b798def/stream",
     transport: "dash",
     isEncrypted: true,
-    licenseServerUrl: "",
+    licenseServerUrl:
+      "https://d3-mhm-01drm.dev.mam.mediahub.aws.cplus/licenses/757d6653-338f-42b5-95bc-91587b798def",
     token: "",
     serverCertificateUrl: "",
     challengeType: "Uint8Array",
@@ -42,15 +51,19 @@ export default function Settings({ setChallenge }: { setChallenge: Function }) {
       messageType: string
     ): Promise<BufferSource | null> | BufferSource | null => {
       console.log("🚀 ~ getLicense ~ challenge:", challenge);
+      console.log(
+        "🚀 ~ getLicense ~ challenge: base64",
+        Buffer.from(challenge).toString("base64")
+      );
       console.log("🚀 ~ getLicense ~ messageType:", messageType);
 
       setChallenge({ message: challenge, messageType });
       return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        if (!!token) {
-          xhr.setRequestHeader("Authorization", token);
-        }
         xhr.open("POST", licenseServerUrl, true);
+        if (!!token) {
+          xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+        }
         xhr.onerror = (err) => {
           reject(err);
         };
@@ -68,18 +81,15 @@ export default function Settings({ setChallenge }: { setChallenge: Function }) {
               "getLicense's request finished with a " +
                 `${xhr.status} HTTP error`
             );
+            console.log("reject");
             reject(error);
           }
         };
         xhr.responseType = "arraybuffer";
-        console.log("send");
-        if (challengeType === "Uint8Array") {
-          xhr.send(challenge);
-        } else {
-          xhr.send(Buffer.from(challenge).toString("base64"));
-          // const decoder = new TextDecoder("utf8");
-          // xhr.send(btoa(decoder.decode(challenge)));
-        }
+
+        // Send buffer in base64
+        xhr.send(Buffer.from(challenge).toString("base64"));
+
         xhr.onreadystatechange = function () {
           if (xhr.readyState == XMLHttpRequest.DONE) {
             console.log("🚀 ~ returnnewPromise ~ xhr:", xhr);
@@ -104,6 +114,7 @@ export default function Settings({ setChallenge }: { setChallenge: Function }) {
       )
         .then((res) => res.arrayBuffer())
         .then((arrayBuffer) => {
+          setArrayBuffer(arrayBuffer);
           const keySystems: IKeySystemOption[] = isEncrypted
             ? [
                 {
@@ -131,6 +142,30 @@ export default function Settings({ setChallenge }: { setChallenge: Function }) {
           // play a video
           player?.loadVideo({
             url,
+            manifestLoader: (urlManifest, { resolve, reject }) => {
+              const sendingTime = Date.now();
+              const accessToken = token;
+              const authHeader = accessToken
+                ? { Authorization: `Bearer ${accessToken}` }
+                : {};
+              axios
+                .get(urlManifest.url as string, {
+                  headers: {
+                    "Content-Type": "application/json",
+                    ...authHeader,
+                  },
+                })
+                .then((response) => {
+                  return resolve({
+                    data: response.data,
+                    duration: Date.now() - sendingTime,
+                    size: 0,
+                  });
+                })
+                .catch((err) => {
+                  return reject(err);
+                });
+            },
             transport,
             autoPlay: true,
             keySystems,
@@ -195,20 +230,6 @@ export default function Settings({ setChallenge }: { setChallenge: Function }) {
           value={token}
           placeholder={`Bearer ...`}
         />
-      </div>
-      <div className="flex gap-[24px] items-center mt-5">
-        <Label>Challenge object type:</Label>
-        Uint8Array
-        <Switch
-          checked={challengeType === "Base64"}
-          onCheckedChange={(checked) =>
-            setSettings((prevState) => ({
-              ...prevState,
-              challengeType: checked ? "Base64" : "Uint8Array",
-            }))
-          }
-        />
-        Base64
       </div>
       <div className="flex gap-[8px] items-center mt-5">
         <Label>Url:</Label>
